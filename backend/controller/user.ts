@@ -1,5 +1,5 @@
 import express, { Router, Request, Response, NextFunction } from "express";
-import User from "../model/user";
+import User, {IUser} from "../model/user";
 import cloudinary from "cloudinary";
 import ErrorHandler from "../utils/ErrorHandler";
 import catchAsyncErrors from "../middleware/catchAsyncErrors";
@@ -11,16 +11,16 @@ import { isAuthenticated, isAdmin } from "../middleware/auth";
 const router: Router = express.Router();
 
 //Define user type
-interface IUser {
-  name: string;
-  email: string;
-  password: string;
-  avatar: {
-    public_id: string;
-    url: string;
-  };
-    comparePassword?: (password: string) => Promise<boolean>;
-}
+// interface IUser {
+//   name: string;
+//   email: string;
+//   password: string;
+//   avatar: {
+//     public_id: string;
+//     url: string;
+//   };
+//     comparePassword?: (password: string) => Promise<boolean>;
+// }
 
 interface IRequestWithUser extends Request {
   user: {
@@ -34,54 +34,59 @@ interface IRequestWithUser extends Request {
 password, and avatar) in the request body. */
 router.post("/create-user", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name, email, password, avatar } = req.body as IUser;
-    const userEmail = await User.findOne({ email });
+    const { name, email, password, avatar } = req.body;
 
+    const userEmail = await User.findOne({ email });
     if (userEmail) {
       return next(new ErrorHandler("User already exists", 400));
     }
 
-    const myCloud = await cloudinary.v2.uploader.upload(avatar.url, {
-  folder: "avatars",
-});
-
-    const user: IUser = {
-      name: name,
-      email: email,
-      password: password,
-      avatar: {
-        public_id: myCloud.public_id,
-        url: myCloud.secure_url,
-      },
-    };
-
-    const activationToken = createActivationToken(user);
-
-    const activationUrl = `http://172.20.10.9:8000/api/v2/user/activation/${activationToken}`;
-
-    try {
-      await sendMail({
-        email: user.email,
-        subject: "Activate your account",
-        message: `Hello ${user.name}, please click on the link to activate your account: ${activationUrl}`,
-      });
-      res.status(201).json({
-        success: true,
-        message: `please check your email:- ${user.email} to activate your account!`,
-      });
-    } catch (error) {
-      if (error instanceof Error) {
+    cloudinary.v2.uploader.upload(avatar, { folder: "avatars", resource_type: "image" }, async (error, result) => {
+      if (error) {
         return next(new ErrorHandler(error.message, 500));
-      } else {
-        return next(new ErrorHandler('An unknown error occurred', 500));
       }
-    }
+
+      const { public_id, secure_url }: any = result;
+
+      const user: IUser = new User({
+        name: name,
+        email: email,
+        password: password,
+        avatar: {
+          public_id: public_id,
+          url: secure_url,
+        },
+      });
+
+      await user.save();
+
+      const activationToken = createActivationToken(user);
+      const activationUrl = `http://localhost:8000/api/v2/user/activation/${activationToken}`;
+
+      try {
+        await sendMail({
+          email: user.email,
+          subject: "Activate your account",
+          message: `Hello ${user.name}, please click on the link to activate your account: ${activationUrl}`,
+        });
+        res.status(201).json({
+          success: true,
+          message: `please check your email:- ${user.email} to activate your account!`,
+        });
+      } catch (error) {
+        if (error instanceof Error) {
+          return next(new ErrorHandler(error.message, 500));
+        } else {
+          return next(new ErrorHandler('An unknown error occurred', 500));
+        }
+      }
+    });
   } catch (error) {
     if (error instanceof Error) {
-        return next(new ErrorHandler(error.message, 400));
-      } else {
-        return next(new ErrorHandler('An unknown error occurred', 500));
-      }
+      return next(new ErrorHandler(error.message, 500));
+    } else {
+      return next(new ErrorHandler('An unknown error occurred', 500));
+    }
   }
 });
 

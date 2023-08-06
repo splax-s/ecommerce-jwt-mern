@@ -18,7 +18,7 @@ router.post(
         amount,
         currency: "usd",
         metadata: {
-          company: "splax",
+          company: "oshop",
         },
       });
 

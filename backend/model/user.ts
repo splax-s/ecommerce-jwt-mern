@@ -9,10 +9,7 @@ export interface IUser extends Document {
   phoneNumber: number;
   addresses: any[];
   role: string;
-  avatar: {
-    public_id: string;
-    url: string;
-  };
+  avatar: any;
   createdAt?: Date;
   resetPasswordToken?: string;
   resetPasswordTime: Date;

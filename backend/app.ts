@@ -66,14 +66,17 @@ const logEndpoints = (req: Request, res: Response, next: NextFunction) => {
   next();
 };
 
-app.use(cors({
-  origin: ['*'],
-  credentials: true
-}));
+const corsOptions = {
+  origin: 'http://localhost:3000', // Replace with your frontend origin
+  credentials: true, // This allows cookies to be sent
+};
+
+app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
+app.use(express.json({ limit: '100mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: "100mb" }));
 app.use(logEndpoints);
 
 // test route

@@ -3,7 +3,7 @@ import cloudinary, { UploadApiResponse } from "cloudinary";
 import ErrorHandler from "../utils/ErrorHandler";
 import catchAsyncErrors from "../middleware/catchAsyncErrors";
 import { isAuthenticated, isSeller, isAdmin } from "../middleware/auth";
-import Order, { IOrder } from "../model/order";
+import Order from "../model/order";
 import Shop, { IShop } from "../model/shop";
 import Product from "../model/product";
 
@@ -19,28 +19,33 @@ router.post(
   catchAsyncErrors(async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { cart, shippingAddress, user, totalPrice, paymentInfo } = req.body;
-
-      //   group cart items by shopId
-      const shopItemsMap = new Map<string, IOrder["cart"]>();
-
-      for (const item of cart) {
-        const shopId = item.shopId;
-        const itemsForShop = shopItemsMap.get(shopId) || []; // Initialize an empty array if shopId is not found
-        itemsForShop.push(item);
-        shopItemsMap.set(shopId, itemsForShop);
+      if (!cart || !shippingAddress || !user || !totalPrice || !paymentInfo) {
+        return next(new ErrorHandler("Missing required fields", 400));
       }
 
+      //   group cart items by shopId
+      const shopItemsMap = new Map();
+
+      for (const item of cart) {// Log individual item
+  const shopId = item.shopId;
+  const itemsForShop = shopItemsMap.get(shopId) || [];
+  itemsForShop.push(item);
+  shopItemsMap.set(shopId, itemsForShop);
+      }
+
+
       // create an order for each shop
-      const orders: IOrder[] = [];
+      const orders = [];
 
       for (const [shopId, items] of shopItemsMap) {
-        const order: IOrder = await Order.create({
+        const order = await Order.create({
           cart: items,
           shippingAddress,
           user,
           totalPrice,
           paymentInfo,
         });
+
         orders.push(order);
       }
 
@@ -63,7 +68,7 @@ router.get(
   "/get-all-orders/:userId",
   catchAsyncErrors(async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const orders: IOrder[] = await Order.find({ "user._id": req.params.userId }).sort({
+      const orders = await Order.find({ "user._id": req.params.userId }).sort({
         createdAt: -1,
       });
 
@@ -86,7 +91,7 @@ router.get(
   "/get-seller-all-orders/:shopId",
   catchAsyncErrors(async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const orders: IOrder[] = await Order.find({
+      const orders  = await Order.find({
         "cart.shopId": req.params.shopId,
       }).sort({
         createdAt: -1,
@@ -112,7 +117,7 @@ router.put(
   isSeller,
   catchAsyncErrors(async (req: RequestWithSeller, res: Response, next: NextFunction) => {
     try {
-      const order: IOrder | null = await Order.findById(req.params.id);
+      const order = await Order.findById(req.params.id);
 
       if (!order) {
         return next(new ErrorHandler("Order not found with this id", 400));
@@ -172,7 +177,7 @@ router.put(
   "/order-refund/:id",
   catchAsyncErrors(async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const order: IOrder | null = await Order.findById(req.params.id);
+      const order = await Order.findById(req.params.id);
 
       if (!order) {
         return next(new ErrorHandler("Order not found with this id", 400));
@@ -203,7 +208,7 @@ router.put(
   isSeller,
   catchAsyncErrors(async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const order: IOrder | null = await Order.findById(req.params.id);
+      const order = await Order.findById(req.params.id);
 
       if (!order) {
         return next(new ErrorHandler("Order not found with this id", 400));
@@ -250,7 +255,7 @@ router.get(
   isAdmin("Admin"),
   catchAsyncErrors(async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const orders: IOrder[] = await Order.find().sort({
+      const orders = await Order.find().sort({
         deliveredAt: -1,
         createdAt: -1,
       });

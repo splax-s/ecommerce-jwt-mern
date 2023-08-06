@@ -6,6 +6,7 @@ import { isAuthenticated, isSeller, isAdmin } from "../middleware/auth";
 import catchAsyncErrors from "../middleware/catchAsyncErrors";
 import ErrorHandler from "../utils/ErrorHandler";
 import sendShopToken from "../utils/shopToken";
+import sendMail from "../utils/sendMail";
 
 const router = express.Router();
 
@@ -45,10 +46,15 @@ router.post(
 
       const activationToken = createActivationToken(seller);
 
-      const activationUrl = `https://eshop-tutorial-pyri.vercel.app/seller/activation/${activationToken}`;
+      const activationUrl = `http://localhost:8000/api/v2/seller/activation/${activationToken}`;
 
       try {
         // Code for sending activation email goes here
+         await sendMail({
+        email: seller.email,
+        subject: "Activate your Shop",
+        message: `Hello ${seller.name}, please click on the link to activate your shop: ${activationUrl}`,
+      });
         res.status(201).json({
           success: true,
           message: `please check your email:- ${seller.email} to activate your shop!`,
