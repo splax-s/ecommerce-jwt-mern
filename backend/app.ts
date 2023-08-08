@@ -92,24 +92,14 @@ const options = {
         url: "http://localhost:8000/api/v2",
       },
     ],
-    securityDefinitions: {
-      basicAuth: {
-        type: 'basic',
-      },
-    },
-    security: [
-      {
-        basicAuth: [],
-      },
-    ],
   },
   apis: ["./controller/*.ts"],
 };
 
-const basicAuthMiddleware = basicAuth({
-  users: { admin: 'password' }, // Replace 'admin' with your desired username and 'password' with your desired password
-  challenge: true, // Send a 401 Unauthorized response if authentication fails
-});
+// const basicAuthMiddleware = basicAuth({
+//   users: { admin: 'password' }, // Replace 'admin' with your desired username and 'password' with your desired password
+//   challenge: false, // Send a 401 Unauthorized response if authentication fails
+// });
 
 // const basicAuthMiddleware = (req: any, res: Response, next: NextFunction) => {
 //   const user: any = basicAuth(req);
@@ -154,7 +144,6 @@ if (process.env.NODE_ENV !== 'PRODUCTION') {
 // apply routes
 app.use(
   "/api-docs",
-  basicAuthMiddleware,
   swaggerUi.serve,
   swaggerUi.setup(specs, { explorer: true })
 );
