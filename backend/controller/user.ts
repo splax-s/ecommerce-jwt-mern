@@ -22,6 +22,77 @@ const router: Router = express.Router();
 //     comparePassword?: (password: string) => Promise<boolean>;
 // }
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: The auto-generated ID of the user
+ *         name:
+ *           type: string
+ *           description: The name of the user
+ *         email:
+ *           type: string
+ *           description: The email address of the user
+ *         password:
+ *           type: string
+ *           description: The password for the user
+ *         phoneNumber:
+ *           type: number
+ *           description: The phone number of the user
+ *         addresses:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               country:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               address1:
+ *                 type: string
+ *               address2:
+ *                 type: string
+ *               zipCode:
+ *                 type: number
+ *               addressType:
+ *                 type: string
+ *           description: The addresses of the user
+ *         role:
+ *           type: string
+ *           description: The role of the user (default is "user")
+ *         avatar:
+ *           type: object
+ *           properties:
+ *             public_id:
+ *               type: string
+ *               description: The public ID of the avatar
+ *             url:
+ *               type: string
+ *               description: The URL of the avatar
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: The creation date of the user
+ *         resetPasswordToken:
+ *           type: string
+ *           description: The reset password token for the user
+ *         resetPasswordTime:
+ *           type: string
+ *           format: date-time
+ *           description: The reset password time for the user
+ *       required:
+ *         - name
+ *         - email
+ *         - password
+ *         - avatar
+ */
+
+
 interface IRequestWithUser extends Request {
   user: {
     id?: string;
@@ -29,64 +100,99 @@ interface IRequestWithUser extends Request {
   };
 }
 
-// create user
-/* The above code is a route handler for creating a new user. It receives a POST request with user data (name, email,
-password, and avatar) in the request body. */
+/**
+ * @openapi
+ * /user/create-user:
+ *   post:
+ *     summary: Create a new user account
+ *     description: This endpoint allows for the creation of a new user account.
+ *     tags:
+ *       - Users
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *               - avatar
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               avatar:
+ *                 type: object
+ *                 properties:
+ *                   public_id:
+ *                     type: string
+ *                   url:
+ *                     type: string
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *       400:
+ *         description: User already exists or other client error
+ *       500:
+ *         description: Server error
+ */
 router.post("/create-user", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name, email, password, avatar } = req.body;
-
+    const { name, email, password, avatar } = req.body as IUser;
     const userEmail = await User.findOne({ email });
+
+
     if (userEmail) {
       return next(new ErrorHandler("User already exists", 400));
     }
 
-    cloudinary.v2.uploader.upload(avatar, { folder: "avatars", resource_type: "image" }, async (error, result) => {
-      if (error) {
-        return next(new ErrorHandler(error.message, 500));
-      }
-
-      const { public_id, secure_url }: any = result;
-
-      const user: IUser = new User({
-        name: name,
-        email: email,
-        password: password,
-        avatar: {
-          public_id: public_id,
-          url: secure_url,
-        },
+      const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
+        folder: "avatars",
       });
 
-      await user.save();
 
-      const activationToken = createActivationToken(user);
-      const activationUrl = `http://localhost:8000/api/v2/user/activation/${activationToken}`;
-
-      try {
-        await sendMail({
-          email: user.email,
-          subject: "Activate your account",
-          message: `Hello ${user.name}, please click on the link to activate your account: ${activationUrl}`,
-        });
-        res.status(201).json({
-          success: true,
-          message: `please check your email:- ${user.email} to activate your account!`,
-        });
-      } catch (error) {
-        if (error instanceof Error) {
-          return next(new ErrorHandler(error.message, 500));
-        } else {
-          return next(new ErrorHandler('An unknown error occurred', 500));
-        }
-      }
+    const user: IUser = new User({
+      name: name,
+      email: email,
+      password: password,
+      avatar: {
+        public_id: myCloud.public_id,
+        url: myCloud.secure_url,
+      },
     });
+    await user.save();
+
+    const activationToken = createActivationToken(user);
+
+    const activationUrl = `http://localhost:8000/api/v2/user/activation/${activationToken}`;
+
+    try {
+      await sendMail({
+        email: user.email,
+        subject: "Activate your account",
+        message: `Hello ${user.name}, please click on the link to activate your account: ${activationUrl}`,
+      });
+      res.status(201).json({
+        success: true,
+        message: `please check your email:- ${user.email} to activate your account!`,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        return next(new ErrorHandler(error.message, 500));
+      } else {
+        return next(new ErrorHandler('An unknown error occurred', 500));
+      }
+    }
   } catch (error) {
     if (error instanceof Error) {
-      return next(new ErrorHandler(error.message, 500));
-    } else {
-      return next(new ErrorHandler('An unknown error occurred', 500));
-    }
+        return next(new ErrorHandler(error.message, 500));
+      } else {
+        return next(new ErrorHandler('An unknown error occurred', 500));
+      }
   }
 });
 
@@ -97,6 +203,32 @@ const createActivationToken = (user: IUser): string => {
   });
 };
 
+/**
+ * @swagger
+ * /user/activation:
+ *   post:
+ *     summary: Activate a user account
+ *     description: This endpoint allows for the activation of a user account using an activation token.
+ *     tags:
+ *       - Users
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - activation_token
+ *             properties:
+ *               activation_token:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User activated successfully
+ *       400:
+ *         description: Invalid token or user already exists
+ *       500:
+ *         description: Server error
+ */
 router.post(
   "/activation",
   catchAsyncErrors(async (req: Request, res: Response, next: NextFunction) => {
@@ -136,6 +268,35 @@ router.post(
   })
 );
 
+/**
+ * @swagger
+ * /user/login-user:
+ *   post:
+ *     summary: Log in a user
+ *     description: This endpoint allows for the login of a user using email and password.
+ *     tags:
+ *       - Users
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User logged in successfully
+ *       400:
+ *         description: Please provide all fields or user doesn't exist or incorrect information
+ *       500:
+ *         description: Server error
+ */
 router.post(
   "/login-user",
   catchAsyncErrors(async (req: Request, res: Response, next: NextFunction) => {
@@ -176,6 +337,24 @@ router.post(
 );
 
 // load user
+/**
+ * @swagger
+ * /user/getuser:
+ *   get:
+ *     summary: Get user information
+ *     description: This endpoint retrieves the information of the authenticated user.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - Bearer: []
+ *     responses:
+ *       200:
+ *         description: User information retrieved successfully
+ *       400:
+ *         description: User doesn't exist
+ *       500:
+ *         description: Server error
+ */
 router.get(
   "/getuser",
   isAuthenticated,
@@ -202,6 +381,20 @@ if (error instanceof Error) {
 );
 
 // log out user
+/**
+ * @swagger
+ * /user/logout:
+ *   get:
+ *     summary: Log out a user
+ *     description: This endpoint logs out the authenticated user.
+ *     tags:
+ *       - Users
+ *     responses:
+ *       201:
+ *         description: Log out successful
+ *       500:
+ *         description: Server error
+ */
 router.get(
   "/logout",
   catchAsyncErrors(async (req: Request, res: Response, next: NextFunction) => {
@@ -231,6 +424,38 @@ router.get(
 );
 
 // update user info
+/**
+ * @swagger
+ * /user/update-user-info:
+ *   put:
+ *     summary: Update user information
+ *     description: This endpoint updates the information of the authenticated user.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - Bearer: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               phoneNumber:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User information updated successfully
+ *       400:
+ *         description: User not found or incorrect information
+ *       500:
+ *         description: Server error
+ */
 router.put(
   "/update-user-info",
   isAuthenticated,
@@ -278,6 +503,32 @@ router.put(
   })
 );
 
+/**
+ * @swagger
+ * /user/update-avatar:
+ *   put:
+ *     summary: Update user avatar
+ *     description: This endpoint updates the avatar of the authenticated user.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - Bearer: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               avatar:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Avatar updated successfully
+ *       400:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
 // update user avatar
 router.put(
   "/update-avatar",
@@ -322,6 +573,34 @@ router.put(
 );
 
 // update user addresses
+/**
+ * @swagger
+ * /user/update-user-addresses:
+ *   put:
+ *     summary: Update user addresses
+ *     description: This endpoint updates the addresses of the authenticated user.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - Bearer: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               addressType:
+ *                 type: string
+ *               _id:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Addresses updated successfully
+ *       400:
+ *         description: User doesn't exist or address already exists
+ *       500:
+ *         description: Server error
+ */
 router.put(
   "/update-user-addresses",
   isAuthenticated,
@@ -368,6 +647,31 @@ router.put(
 );
 
 // delete user address
+/**
+ * @swagger
+ * /user/delete-user-address/{id}:
+ *   delete:
+ *     summary: Delete user address
+ *     description: This endpoint deletes a specific address of the authenticated user.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - Bearer: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID of the address to delete
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Address deleted successfully
+ *       400:
+ *         description: User doesn't exist
+ *       500:
+ *         description: Server error
+ */
 router.delete(
   "/delete-user-address/:id",
   isAuthenticated,
@@ -401,6 +705,36 @@ router.delete(
 );
 
 // update user password
+/**
+ * @swagger
+ * /user/update-user-password:
+ *   put:
+ *     summary: Update user password
+ *     description: This endpoint updates the password of the authenticated user.
+ *     tags:
+ *       - Users
+ *     security:
+ *       - Bearer: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               oldPassword:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *               confirmPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *       400:
+ *         description: Old password is incorrect or passwords don't match
+ *       500:
+ *         description: Server error
+ */
 router.put(
   "/update-user-password",
   isAuthenticated,
@@ -446,6 +780,30 @@ router.put(
 );
 
 // find user information with the userId
+/**
+ * @swagger
+ * /user/user-info/{id}:
+ *   get:
+ *     summary: Retrieve user information
+ *     description: This endpoint retrieves information about a specific user by ID.
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID of the user to retrieve
+ *         schema:
+ *           type: string
+ *     responses:
+ *       201:
+ *         description: User information retrieved successfully
+ *       400:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+
 router.get(
   "/user-info/:id",
   catchAsyncErrors(async (req: Request, res: Response, next: NextFunction) => {
@@ -471,6 +829,23 @@ router.get(
 );
 
 // all users --- for admin
+/**
+ * @swagger
+ * /user/admin-all-users:
+ *   get:
+ *     summary: Retrieve all users (Admin only)
+ *     description: This endpoint retrieves all users. Accessible only by admins.
+ *     tags:
+ *       - Admin
+ *     security:
+ *       - Bearer: []
+ *     responses:
+ *       201:
+ *         description: Users retrieved successfully
+ *       500:
+ *         description: Server error
+ */
+
 router.get(
   "/admin-all-users",
   isAuthenticated,
@@ -496,6 +871,31 @@ router.get(
 
 
 
+/**
+ * @swagger
+ * /user/delete-user/{id}:
+ *   delete:
+ *     summary: Delete user (Admin only)
+ *     description: This endpoint deletes a specific user by ID. Accessible only by admins.
+ *     tags:
+ *       - Admin
+ *     security:
+ *       - Bearer: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID of the user to delete
+ *         schema:
+ *           type: string
+ *     responses:
+ *       201:
+ *         description: User deleted successfully
+ *       400:
+ *         description: User is not available with this ID
+ *       500:
+ *         description: Server error
+ */
 
 router.delete(
   "/delete-user/:id",

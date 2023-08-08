@@ -13,8 +13,318 @@ const router = express.Router();
 interface RequestWithSeller extends Request {
   seller?: IShop; // Replace 'IShop' with the actual type of the seller property
 }
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Shop:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *         email:
+ *           type: string
+ *         password:
+ *           type: string
+ *         avatar:
+ *           type: object
+ *           properties:
+ *             public_id:
+ *               type: string
+ *             url:
+ *               type: string
+ *         address:
+ *           type: string
+ *         phoneNumber:
+ *           type: number
+ *         zipCode:
+ *           type: number
+ *       required:
+ *         - name
+ *         - email
+ *         - password
+ *         - avatar
+ *         - address
+ *         - phoneNumber
+ *         - zipCode
+ */
+
 
 // create shop
+/**
+ * @swagger
+ * tags:
+ *   name: Shop
+ *   description: Shop management
+ * components:
+ *   schemas:
+ *     Shop:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *         email:
+ *           type: string
+ *         password:
+ *           type: string
+ *         avatar:
+ *           type: object
+ *           properties:
+ *             public_id:
+ *               type: string
+ *             url:
+ *               type: string
+ *         address:
+ *           type: string
+ *         phoneNumber:
+ *           type: number
+ *         zipCode:
+ *           type: number
+ *       required:
+ *         - name
+ *         - email
+ *         - password
+ *         - avatar
+ *         - address
+ *         - phoneNumber
+ *         - zipCode
+ */
+
+/**
+ * @swagger
+ * /shop/create-shop:
+ *   post:
+ *     summary: Create a new shop
+ *     tags: [Shop]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Shop'
+ *     responses:
+ *       201:
+ *         description: Shop created successfully
+ *       400:
+ *         description: User already exists
+ *       500:
+ *         description: An unknown error occurred
+ */
+
+/**
+ * @swagger
+ * /shop/activation:
+ *   post:
+ *     summary: Activate user
+ *     tags: [Shop]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               activation_token:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Success
+ *       400:
+ *         description: Invalid token or User not found
+ *       500:
+ *         description: An unknown error occurred
+ */
+
+/**
+ * @swagger
+ * /shop/login-shop:
+ *   post:
+ *     summary: Login shop
+ *     tags: [Shop]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Success
+ *       400:
+ *         description: Invalid email or password or Missing fields
+ *       500:
+ *         description: An unknown error occurred
+ */
+
+/**
+ * @swagger
+ * /shop/getSeller:
+ *   get:
+ *     summary: Get seller information
+ *     tags: [Shop]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Success
+ *       400:
+ *         description: User doesn't exist
+ *       500:
+ *         description: An unknown error occurred
+ */
+
+/**
+ * @swagger
+ * /shop/logout:
+ *   get:
+ *     summary: Log out from shop
+ *     tags: [Shop]
+ *     responses:
+ *       201:
+ *         description: Log out successful
+ *       500:
+ *         description: An unknown error occurred
+ */
+
+/**
+ * @swagger
+ * /shop/get-shop-info/{id}:
+ *   get:
+ *     summary: Get shop information
+ *     tags: [Shop]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       201:
+ *         description: Success
+ *       500:
+ *         description: An unknown error occurred
+ */
+
+/**
+ * @swagger
+ * /shop/update-shop-avatar:
+ *   put:
+ *     summary: Update shop profile picture
+ *     tags: [Shop]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               avatar:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Success
+ *       404:
+ *         description: Seller not found
+ *       500:
+ *         description: An unknown error occurred
+ */
+
+/**
+ * @swagger
+ * /shop/update-seller-info:
+ *   put:
+ *     summary: Update seller information
+ *     tags: [Shop]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Shop'
+ *     responses:
+ *       201:
+ *         description: Success
+ *       400:
+ *         description: User not found
+ *       500:
+ *         description: An unknown error occurred
+ */
+
+/**
+ * @swagger
+ * /shop/admin-all-sellers:
+ *   get:
+ *     summary: Get all sellers (Admin only)
+ *     tags: [Shop]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       201:
+ *         description: Success
+ *       500:
+ *         description: An unknown error occurred
+ */
+
+/**
+ * @swagger
+ * /shop/delete-seller/{id}:
+ *   delete:
+ *     summary: Delete seller (Admin only)
+ *     tags: [Shop]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       201:
+ *         description: Seller deleted successfully
+ *       400:
+ *         description: Seller not available with this id
+ *       500:
+ *         description: An unknown error occurred
+ */
+
+/**
+ * @swagger
+ * /shop/update-payment-methods:
+ *   put:
+ *     summary: Update seller withdraw methods
+ *     tags: [Shop]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               paymentMethods:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       201:
+ *         description: Success
+ *       400:
+ *         description: User not found
+ *       500:
+ *         description: An unknown error occurred
+ */
+
 router.post(
   "/create-shop",
   catchAsyncErrors(async (req: Request, res: Response, next: NextFunction) => {

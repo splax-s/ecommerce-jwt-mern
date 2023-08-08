@@ -7,6 +7,222 @@ import { isSeller, isAdmin, isAuthenticated } from "../middleware/auth";
 import cloudinary, { UploadApiResponse } from "cloudinary";
 
 const router = express.Router();
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     IEvent:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *         description:
+ *           type: string
+ *         category:
+ *           type: string
+ *         start_Date:
+ *           type: string
+ *           format: date
+ *         Finish_Date:
+ *           type: string
+ *           format: date
+ *         status:
+ *           type: string
+ *         tags:
+ *           type: string
+ *         originalPrice:
+ *           type: number
+ *         discountPrice:
+ *           type: number
+ *         stock:
+ *           type: number
+ *         images:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               public_id:
+ *                 type: string
+ *               url:
+ *                 type: string
+ *         shopId:
+ *           type: string
+ *         shop:
+ *           type: object
+ *         sold_out:
+ *           type: number
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *
+ * /event/create-event:
+ *   post:
+ *     summary: Create a new event
+ *     tags: [Events]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/IEvent'
+ *     responses:
+ *       201:
+ *         description: Event created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   default: true
+ *                 event:
+ *                   $ref: '#/components/schemas/IEvent'
+ *       400:
+ *         description: Missing required fields or invalid Shop ID
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   default: false
+ *                 error:
+ *                   type: string
+ *       500:
+ *         description: An unknown error occurred
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   default: false
+ *                 error:
+ *                   type: string
+ *
+ * /event/get-all-events:
+ *   get:
+ *     summary: Get all events
+ *     tags: [Events]
+ *     responses:
+ *       200:
+ *         description: List of all events
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   default: true
+ *                 events:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/IEvent'
+ *       500:
+ *         description: An unknown error occurred
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   default: false
+ *                 error:
+ *                   type: string
+ *
+ * /event/get-all-events/:id:
+ *   get:
+ *     summary: Get all events of a shop
+ *     tags: [Events]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the shop
+ *     responses:
+ *       200:
+ *         description: List of all events of the shop
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   default: true
+ *                 events:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/IEvent'
+ *       400:
+ *         description: Invalid Shop ID
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   default: false
+ *                 error:
+ *                   type: string
+ *       500:
+ *         description: An unknown error occurred
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   default: false
+ *                 error:
+ *                   type: string
+ *
+ * /event/delete-shop-event/:id:
+ *   delete:
+ *     summary: Delete an event of a shop
+ *     tags: [Events]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the event
+ *     responses:
+ *       200:
+ *         description: Event deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   default: true
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Event not found with the given ID
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   default: false
+ *                 error:
+ *                   type: string
+ */
 
 // create event
 router.post(

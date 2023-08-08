@@ -15,6 +15,31 @@ interface RequestWithSeller extends Request {
 
 
 // create withdraw request --- only for seller
+/**
+ * @swagger
+ * /withdraw/create-withdraw-request:
+ *   post:
+ *     summary: Create a new withdraw request
+ *     tags: [Withdraw]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               amount:
+ *                 type: number
+ *                 description: The amount to withdraw
+ *     responses:
+ *       201:
+ *         description: Withdraw request created successfully
+ *       500:
+ *         description: An unknown error occurred
+ */
+
 router.post(
   "/create-withdraw-request",
   isSeller,
@@ -71,6 +96,21 @@ router.post(
   })
 );
 // get all withdraws --- admin
+/**
+ * @swagger
+ * /withdraw/get-all-withdraw-request:
+ *   get:
+ *     summary: Retrieve all withdraw requests
+ *     tags: [Withdraw]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       201:
+ *         description: Successfully retrieved all withdraw requests
+ *       500:
+ *         description: An unknown error occurred
+ */
+
 router.get(
   "/get-all-withdraw-request",
   isAuthenticated,
@@ -94,6 +134,40 @@ router.get(
 );
 
 // update withdraw request ---- admin
+/**
+ * @swagger
+ * /withdraw/update-withdraw-request/{id}:
+ *   put:
+ *     summary: Update a specific withdraw request by ID
+ *     tags: [Withdraw]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the withdraw request to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               sellerId:
+ *                 type: string
+ *                 description: ID of the seller
+ *     responses:
+ *       201:
+ *         description: Withdraw request updated successfully
+ *       404:
+ *         description: Withdraw or Seller not found
+ *       500:
+ *         description: An unknown error occurred
+ */
+
 router.put(
   "/update-withdraw-request/:id",
   isAuthenticated,

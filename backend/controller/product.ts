@@ -8,6 +8,232 @@ import Order from "../model/order";
 import Shop from "../model/shop";
 
 const router = express.Router();
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Image:
+ *       type: object
+ *       properties:
+ *         public_id:
+ *           type: string
+ *           description: The public ID of the image
+ *         url:
+ *           type: string
+ *           description: The URL of the image
+ *     Review:
+ *       type: object
+ *       properties:
+ *         user:
+ *           type: object
+ *           description: The user who wrote the review
+ *         rating:
+ *           type: number
+ *           description: The rating given by the user
+ *         comment:
+ *           type: string
+ *           description: The comment made by the user
+ *         productId:
+ *           type: string
+ *           description: The ID of the product being reviewed
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: The creation date of the review
+ *     Product:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: The name of the product
+ *         description:
+ *           type: string
+ *           description: The description of the product
+ *         category:
+ *           type: string
+ *           description: The category of the product
+ *         tags:
+ *           type: string
+ *           description: The tags associated with the product
+ *         originalPrice:
+ *           type: number
+ *           description: The original price of the product
+ *         discountPrice:
+ *           type: number
+ *           description: The discounted price of the product
+ *         stock:
+ *           type: number
+ *           description: The stock of the product
+ *         images:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Image'
+ *           description: The images of the product
+ *         reviews:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Review'
+ *           description: The reviews of the product
+ *         ratings:
+ *           type: number
+ *           description: The ratings of the product
+ *         shopId:
+ *           type: string
+ *           description: The ID of the shop
+ *         shop:
+ *           type: object
+ *           description: The shop object
+ *         sold_out:
+ *           type: number
+ *           description: The sold-out status of the product
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: The creation date of the product
+ *       required:
+ *         - name
+ *         - description
+ *         - category
+ *         - discountPrice
+ *         - stock
+ *         - images
+ *         - shopId
+ *         - shop
+ */
+
+
+/**
+ * @swagger
+ * /product/create-product:
+ *   post:
+ *     summary: Create a new product
+ *     tags: [Products]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Product'
+ *     responses:
+ *       201:
+ *         description: The product was successfully created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Product'
+ *       400:
+ *         description: Invalid shop ID
+ *       500:
+ *         description: An unknown error occurred
+ */
+
+/**
+ * @swagger
+ * /product/get-all-products-shop/{id}:
+ *   get:
+ *     summary: Get all products of a shop
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The shop ID
+ *     responses:
+ *       201:
+ *         description: Successfully retrieved products
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Product'
+ *       500:
+ *         description: An unknown error occurred
+ */
+
+/**
+ * @swagger
+ * /product/delete-shop-product/{id}:
+ *   delete:
+ *     summary: Delete a product of a shop
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The product ID
+ *     responses:
+ *       201:
+ *         description: Product deleted successfully
+ *       404:
+ *         description: Product not found with this ID
+ *       500:
+ *         description: An unknown error occurred
+ */
+
+/**
+ * @swagger
+ * /product/get-all-products:
+ *   get:
+ *     summary: Get all products
+ *     tags: [Products]
+ *     responses:
+ *       201:
+ *         description: Successfully retrieved products
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Product'
+ *       500:
+ *         description: An unknown error occurred
+ */
+
+/**
+ * @swagger
+ * /product/create-new-review:
+ *   put:
+ *     summary: Create a new review for a product
+ *     tags: [Reviews]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Review'
+ *     responses:
+ *       200:
+ *         description: Reviewed successfully
+ *       404:
+ *         description: Product not found with this ID
+ *       500:
+ *         description: An unknown error occurred
+ */
+
+/**
+ * @swagger
+ * /product/admin-all-products:
+ *   get:
+ *     summary: Get all products (for admin)
+ *     tags: [Products]
+ *     responses:
+ *       201:
+ *         description: Successfully retrieved products
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Product'
+ *       500:
+ *         description: An unknown error occurred
+ */
+
 
 interface Review {
   _id: string; // Add the _id property

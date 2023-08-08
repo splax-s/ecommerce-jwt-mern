@@ -9,6 +9,344 @@ import Product from "../model/product";
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Order:
+ *       type: object
+ *       required:
+ *         - cart
+ *         - shippingAddress
+ *         - user
+ *         - totalPrice
+ *       properties:
+ *         cart:
+ *           type: array
+ *           description: The items in the cart
+ *           items:
+ *             type: object
+ *         shippingAddress:
+ *           type: object
+ *           description: The shipping address for the order
+ *         user:
+ *           type: object
+ *           description: The user who placed the order
+ *         totalPrice:
+ *           type: number
+ *           description: The total price of the order
+ *         status:
+ *           type: string
+ *           description: The status of the order
+ *           default: Processing
+ *         paymentInfo:
+ *           type: object
+ *           properties:
+ *             id:
+ *               type: string
+ *               description: Payment ID
+ *             status:
+ *               type: string
+ *               description: Payment status
+ *             type:
+ *               type: string
+ *               description: Payment type
+ *         paidAt:
+ *           type: string
+ *           format: date-time
+ *           description: The date and time when the order was paid
+ *           default: The current date and time
+ *         deliveredAt:
+ *           type: string
+ *           format: date-time
+ *           description: The date and time when the order was delivered
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: The date and time when the order was created
+ *           default: The current date and time
+ */
+
+
+/**
+ * @swagger
+ * tags:
+ *   - name: Orders
+ *     description: Order management
+ *   - name: Admin
+ *     description: Admin operations
+ */
+
+/**
+ * @swagger
+ * /order/create-order:
+ *   post:
+ *     summary: Create a new order
+ *     tags: [Orders]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               cart:
+ *                 type: array
+ *               shippingAddress:
+ *                 type: object
+ *               user:
+ *                 type: object
+ *               totalPrice:
+ *                 type: number
+ *               paymentInfo:
+ *                 type: object
+ *     responses:
+ *       201:
+ *         description: Order created successfully
+ */
+
+/**
+ * @swagger
+ * /order/get-all-orders/{userId}:
+ *   get:
+ *     summary: Get all orders of a user
+ *     tags: [Orders]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Orders retrieved successfully
+ */
+
+/**
+ * @swagger
+ * /order/get-seller-all-orders/{shopId}:
+ *   get:
+ *     summary: Get all orders of a seller
+ *     tags: [Orders]
+ *     parameters:
+ *       - in: path
+ *         name: shopId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Orders retrieved successfully
+ */
+
+/**
+ * @swagger
+ * /order/update-order-status/{id}:
+ *   put:
+ *     summary: Update order status for seller
+ *     tags: [Orders]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Order status updated successfully
+ */
+
+/**
+ * @swagger
+ * /order/order-refund/{id}:
+ *   put:
+ *     summary: Request a refund for an order (user)
+ *     tags: [Orders]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Refund request successful
+ */
+
+/**
+ * @swagger
+ * /order/order-refund-success/{id}:
+ *   put:
+ *     summary: Accept the refund request (seller)
+ *     tags: [Orders]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Refund successful
+ */
+
+/**
+ * @swagger
+ * /order/admin-all-orders:
+ *   get:
+ *     summary: Get all orders (admin)
+ *     tags: [Admin]
+ *     responses:
+ *       201:
+ *         description: Orders retrieved successfully
+ */
+
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     BadRequest:
+ *       description: Missing required fields
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               message:
+ *                 type: string
+ *     NotFound:
+ *       description: Resource not found
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               message:
+ *                 type: string
+ *     InternalServerError:
+ *       description: An unknown error occurred
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               message:
+ *                 type: string
+ */
+
+/**
+ * @swagger
+ * /order/create-order:
+ *   post:
+ *     responses:
+ *       201:
+ *         description: Order created successfully
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+
+/**
+ * @swagger
+ * /order/get-all-orders/{userId}:
+ *   get:
+ *     responses:
+ *       200:
+ *         description: All orders of user retrieved successfully
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+
+/**
+ * @swagger
+ * /order/get-seller-all-orders/{shopId}:
+ *   get:
+ *     responses:
+ *       200:
+ *         description: All orders of seller retrieved successfully
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+
+/**
+ * @swagger
+ * /order/update-order-status/{id}:
+ *   put:
+ *     responses:
+ *       200:
+ *         description: Order status updated successfully
+ *       400:
+ *         $ref: '#/components/responses/NotFound'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+
+/**
+ * @swagger
+ * /order/order-refund/{id}:
+ *   put:
+ *     responses:
+ *       200:
+ *         description: Order refund request successfully
+ *       400:
+ *         $ref: '#/components/responses/NotFound'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+
+/**
+ * @swagger
+ * /order/order-refund-success/{id}:
+ *   put:
+ *     responses:
+ *       200:
+ *         description: Order refund successful
+ *       400:
+ *         $ref: '#/components/responses/NotFound'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+
+/**
+ * @swagger
+ * /order/admin-all-orders:
+ *   get:
+ *     responses:
+ *       201:
+ *         description: All orders retrieved successfully for admin
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+
+
 interface RequestWithSeller extends Request {
   seller?: IShop; // Replace 'IShop' with the actual type of the seller property
 }

@@ -6,6 +6,109 @@ import catchAsyncErrors from "../middleware/catchAsyncErrors";
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Image:
+ *       type: object
+ *       properties:
+ *         public_id:
+ *           type: string
+ *           description: The public ID of the image
+ *         url:
+ *           type: string
+ *           description: The URL of the image
+ *     Message:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: The unique ID of the message
+ *           required: true
+ *         conversationId:
+ *           type: string
+ *           description: The ID of the conversation to which the message belongs
+ *         text:
+ *           type: string
+ *           description: The text content of the message
+ *         sender:
+ *           type: string
+ *           description: The sender of the message
+ *         images:
+ *           $ref: '#/components/schemas/Image'
+ *           description: The images associated with the message
+ *       required:
+ *         - id
+ */
+
+/**
+ * @swagger
+ * tags:
+ *   name: Messages
+ *   description: Endpoints for managing messages
+ */
+
+/**
+ * @swagger
+ * /message/create-new-message:
+ *   post:
+ *     summary: Create a new message
+ *     tags: [Messages]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Message'
+ *     responses:
+ *       201:
+ *         description: Message created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   $ref: '#/components/schemas/Message'
+ *       500:
+ *         description: An unknown error occurred
+ */
+
+/**
+ * @swagger
+ * /message/get-all-messages/{id}:
+ *   get:
+ *     summary: Get all messages with a specific conversation ID
+ *     tags: [Messages]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The conversation ID
+ *     responses:
+ *       200:
+ *         description: Messages retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 messages:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Message'
+ *       500:
+ *         description: An unknown error occurred
+ */
+
+
 // create new message
 router.post(
   "/create-new-message",
