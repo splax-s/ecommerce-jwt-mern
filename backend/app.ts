@@ -83,7 +83,7 @@ const options = {
       },
       contact: {
         name: "Splax",
-        url: "https://logrocket.com",
+        url: "",
         email: "shakaikhanoba@gmail.com",
       },
     },
@@ -92,6 +92,24 @@ const options = {
         url: "http://localhost:8000/api/v2",
       },
     ],
+    security: [{
+      bearerAuth: [], // name of the security scheme
+      sellerAuth: []
+  }],
+  components: {
+    securitySchemes: {
+      bearerAuth: { // name of the security scheme
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+      sellerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      }
+    },
+  },
   },
   apis: ["./controller/*.ts"],
 };
